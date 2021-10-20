@@ -161,7 +161,8 @@ create_system_keystore() {
   local CLOUD_KEY_ALIAS=$4
   local CLOUD_CERT_FILE="${CLOUD_KEYSTORE%.*}.crt"
   local SYSTEM_KEYSTORE=$5
-  local SYSTEM_KEY_ALIAS=$6
+  local SYSTEM_KEY_CN=$6
+  local SYSTEM_KEY_ALIAS=$(echo "$6" | cut -f1 -d.)
   local SYSTEM_PUB_FILE="${SYSTEM_KEYSTORE%.*}.pub"
   local SAN=$7
 
@@ -182,7 +183,7 @@ create_system_keystore() {
       -validity "3650" \
       -alias "${SYSTEM_KEY_ALIAS}" \
       -keypass:env "PASSWORD" \
-      -dname "CN=${SYSTEM_KEY_ALIAS}" \
+      -dname "CN=${SYSTEM_KEY_CN}" \
       -ext "SubjectAlternativeName=${SAN}"
 
     keytool -importcert -v \
