@@ -30,9 +30,15 @@ else
     exit 2;
 fi
 
+
+# Create folder if does not exist
+if ! test -d "${FOLDER}"; then
+    echo "Creating folder for certificates..."
+    mkdir -p "${FOLDER}"
+fi
+
+
 # Generating certificates for SYSTEM.CLOUD.DOMAIN.arrowhead.eu
-
-
 
 ## 1) Generate root certificate keystore
 echo -n "Step 1: Root (master) certificate "
