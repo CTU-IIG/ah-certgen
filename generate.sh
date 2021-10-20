@@ -5,6 +5,10 @@ cd "$(dirname "$0")" || exit
 source "variables.sh"
 source "lib_certs.sh"
 
+if [[ -z "${SAN}" ]]; then
+  # Subject alternative names for the certificates
+  export SAN="dns:localhost,ip:127.0.0.1"
+fi
 
 ## Variables
 # DOMAIN
@@ -100,7 +104,7 @@ while test $# -gt 0; do
             "master.p12" "arrowhead.eu" \
             "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "${FOLDER}${SYSTEM}.p12" "${SYSTEM}.${CLOUD}.${DOMAIN}.arrowhead.eu" \
-            "dns:localhost,ip:127.0.0.1"
+            "${SAN}"
 
         if test $? -ne 0; then
             echo "${SYSTEM} : NOT GENERATED";

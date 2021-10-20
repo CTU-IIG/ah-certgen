@@ -32,6 +32,13 @@ export PASSWORD="PASSWORD USED FOR THE CERTIFICATES"
 export DOMAIN="ltu"
 export CLOUD="relay"
 export FOLDER="./certificates/"
+
+##
+# Subject Alternative Names
+# Set here hostnames/IPs of the computers. Wildcards are allowed.
+# When not set, following line is used instead.
+export SAN="dns:localhost,ip:127.0.0.1"
+##
 ```
 
 ### System certificates generation
