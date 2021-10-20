@@ -35,15 +35,15 @@ fi
 
 
 ## 1) Generate root certificate keystore
-echo -n "Step 1: Root certificate "
+echo -n "Step 1: Root (master) certificate "
 
-if test -f "root.p12"; then
+if test -f "master.p12"; then
     echo "FOUND";
 else
 #    create_root_keystore \
 #        "${FOLDER}root.p12" "arrowhead.eu"
 #    echo "GENERATED";
-    echo "Download 'root.p12' and 'root.crt' (also called 'master') from arrowhead-f repository." >&2
+    echo "Download 'master.p12' and 'master.crt' (also called 'root') from arrowhead-f repository." >&2
     exit 1;
 fi
 
@@ -67,7 +67,7 @@ if test -f "${FOLDER}${CLOUD}.p12"; then
     echo "FOUND";
 else
     create_cloud_keystore \
-        "root.p12" "arrowhead.eu" \
+        "master.p12" "arrowhead.eu" \
         "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu"
     echo "GENERATED";
 fi
@@ -83,7 +83,7 @@ while test $# -gt 0; do
         echo "${SYSTEM} : FOUND";
     else
         create_system_keystore \
-            "root.p12" "arrowhead.eu" \
+            "master.p12" "arrowhead.eu" \
             "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "${FOLDER}${SYSTEM}.p12" "${SYSTEM}.${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "dns:localhost,ip:127.0.0.1"
@@ -109,7 +109,7 @@ if test -f "${FOLDER}sysop.p12"; then
     echo "FOUND";
 else
     create_sysop_keystore \
-        "root.p12" "arrowhead.eu" \
+        "master.p12" "arrowhead.eu" \
         "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
         "${FOLDER}sysop.p12" "sysop.${CLOUD}.${DOMAIN}.arrowhead.eu"
     echo "GENERATED";
@@ -125,6 +125,6 @@ else
     create_truststore \
         "${FOLDER}truststore.p12" \
         "${FOLDER}${CLOUD}.crt" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
-        "root.crt" "arrowhead.eu"
+        "master.crt" "arrowhead.eu"
     echo "GENERATED";
 fi

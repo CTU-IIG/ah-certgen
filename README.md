@@ -2,7 +2,12 @@
 
 Developed by: [https://github.com/emanuelpalm](https://github.com/emanuelpalm)
 
-Root certificates are downloaded from: [https://github.com/arrowhead-f/core-java-spring/certificates](https://github.com/arrowhead-f/core-java-spring/certificates)
+Root certificates are downloaded from: [https://github.com/eclipse-arrowhead/core-java-spring/tree/master/certificates](https://github.com/eclipse-arrowhead/core-java-spring/tree/master/certificates)
+
+```
+wget https://raw.githubusercontent.com/eclipse-arrowhead/core-java-spring/master/certificates/master.crt
+wget https://raw.githubusercontent.com/eclipse-arrowhead/core-java-spring/master/certificates/master.p12
+```
 
 
 ## Usage
