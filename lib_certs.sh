@@ -5,11 +5,23 @@
 # systems and system operators.
 
 # The environment variable PASSWORD is used to set the password of all
-# created key stores. If it is not set, "123456" is used by default. The
-# password can be changed for individual keystores and truststores later if
-# desired.
+# created system certificates. If it is not set, "123456" is used by default.
+# The password can be changed for individual keystores and truststores later
+# if desired.
 if [[ -z "${PASSWORD}" ]]; then
-  export PASSWORD="PASSWORD TO THE KEYSTORES"
+  export PASSWORD="PASSWORD TO THE SYSTEM CERTIFICATE"
+fi
+if [[ -z "${MASTER_PASSWORD}" ]]; then
+  # Password to the root certificate
+  export MASTER_PASSWORD="$PASSWORD"
+fi
+if [[ -z "${CLOUD_KEYSTORE_PASSWORD}" ]]; then
+  # Password to the cloud keystore
+  export CLOUD_KEYSTORE_PASSWORD="$PASSWORD"
+fi
+if [[ -z "${CLOUD_TRUSTSTORE_PASSWORD}" ]]; then
+  # Password to the cloud truststore
+  export CLOUD_TRUSTSTORE_PASSWORD="$PASSWORD"
 fi
 
 # Creates a root certificate keystore and a corresponding PEM certificate.
@@ -32,12 +44,12 @@ create_root_keystore() {
 
     keytool -genkeypair -v \
       -keystore "${ROOT_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "MASTER_PASSWORD" \
       -keyalg "RSA" \
       -keysize "2048" \
       -validity "3650" \
       -alias "${ROOT_KEY_ALIAS}" \
-      -keypass:env "PASSWORD" \
+      -keypass:env "MASTER_PASSWORD" \
       -dname "CN=${ROOT_KEY_ALIAS}" \
       -ext "BasicConstraints=ca:true,pathlen:3"
   fi
@@ -47,9 +59,9 @@ create_root_keystore() {
 
     keytool -exportcert -v \
       -keystore "${ROOT_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "MASTER_PASSWORD" \
       -alias "${ROOT_KEY_ALIAS}" \
-      -keypass:env "PASSWORD" \
+      -keypass:env "MASTER_PASSWORD" \
       -file "${ROOT_CERT_FILE}" \
       -rfc
   fi
@@ -86,18 +98,18 @@ create_cloud_keystore() {
 
     keytool -genkeypair -v \
       -keystore "${CLOUD_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
       -keyalg "RSA" \
       -keysize "2048" \
       -validity "3650" \
       -alias "${CLOUD_KEY_ALIAS}" \
-      -keypass:env "PASSWORD" \
+      -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
       -dname "CN=${CLOUD_KEY_ALIAS}" \
       -ext "BasicConstraints=ca:true,pathlen:2"
 
     keytool -importcert -v \
       -keystore "${CLOUD_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
       -alias "${ROOT_KEY_ALIAS}" \
       -file "${ROOT_CERT_FILE}" \
       -trustcacerts \
@@ -105,22 +117,22 @@ create_cloud_keystore() {
 
     keytool -certreq -v \
       -keystore "${CLOUD_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
       -alias "${CLOUD_KEY_ALIAS}" \
-      -keypass:env "PASSWORD" |
+      -keypass:env "CLOUD_KEYSTORE_PASSWORD" |
       keytool -gencert -v \
         -keystore "${ROOT_KEYSTORE}" \
-        -storepass:env "PASSWORD" \
+        -storepass:env "MASTER_PASSWORD" \
         -validity "3650" \
         -alias "${ROOT_KEY_ALIAS}" \
-        -keypass:env "PASSWORD" \
+        -keypass:env "MASTER_PASSWORD" \
         -ext "BasicConstraints=ca:true,pathlen:2" \
         -rfc |
       keytool -importcert \
         -keystore "${CLOUD_KEYSTORE}" \
-        -storepass:env "PASSWORD" \
+        -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
         -alias "${CLOUD_KEY_ALIAS}" \
-        -keypass:env "PASSWORD" \
+        -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
         -trustcacerts \
         -noprompt
   fi
@@ -130,9 +142,9 @@ create_cloud_keystore() {
 
     keytool -exportcert -v \
       -keystore "${CLOUD_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
+      -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
       -alias "${CLOUD_KEY_ALIAS}" \
-      -keypass:env "PASSWORD" \
+      -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
       -file "${CLOUD_CERT_FILE}" \
       -rfc
   fi
@@ -209,10 +221,10 @@ create_system_keystore() {
       -keypass:env "PASSWORD" |
       keytool -gencert -v \
         -keystore "${CLOUD_KEYSTORE}" \
-        -storepass:env "PASSWORD" \
+        -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
         -validity "3650" \
         -alias "${CLOUD_KEY_ALIAS}" \
-        -keypass:env "PASSWORD" \
+        -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
         -ext "SubjectAlternativeName=${SAN}" \
         -rfc |
       keytool -importcert \
@@ -347,7 +359,7 @@ create_truststore() {
     for ((j = 1; j < ARGC; j = j + 2)); do
       keytool -importcert -v \
         -keystore "${TRUSTSTORE}" \
-        -storepass:env "PASSWORD" \
+        -storepass:env "CLOUD_TRUSTSTORE_PASSWORD" \
         -file "${ARGV[j]}" \
         -alias "${ARGV[j + 1]}" \
         -trustcacerts \

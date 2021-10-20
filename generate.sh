@@ -46,15 +46,17 @@ echo -n "Step 1: Root (master) certificate "
 if test -f "master.p12"; then
     echo "FOUND";
 else
-#    create_root_keystore \
-#        "${FOLDER}root.p12" "arrowhead.eu"
-#    echo "GENERATED";
+    # Can be generated using:
+    # create_root_keystore \
+    #     "${FOLDER}master.p12" "arrowhead.eu"
+    # echo "GENERATED";
     echo "Download 'master.p12' and 'master.crt' (also called 'root') from arrowhead-f repository." >&2
     exit 1;
 fi
 
 
 ## 2) Generate truststore
+## This is not needed?
 #echo -n "Step 2: Truststore "
 #
 #if test -f "${FOLDER}truststore.p12"; then
