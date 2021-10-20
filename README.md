@@ -16,7 +16,7 @@ wget https://raw.githubusercontent.com/eclipse-arrowhead/core-java-spring/master
 
 At first, create a bash file containing variables used for certificate generation. They are in a separate file in order to have some boundary between public and private files.
 
-Example:
+Example of `variables.sh`:
 
 ```bash
 #!/bin/bash
