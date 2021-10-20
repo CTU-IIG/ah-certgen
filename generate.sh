@@ -77,7 +77,13 @@ else
     create_cloud_keystore \
         "master.p12" "arrowhead.eu" \
         "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu"
-    echo "GENERATED";
+
+    if test $? -ne 0; then
+        echo "NOT GENERATED";
+        exit 3;
+    else
+        echo "GENERATED";
+    fi
 fi
 
 
@@ -95,6 +101,12 @@ while test $# -gt 0; do
             "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "${FOLDER}${SYSTEM}.p12" "${SYSTEM}.${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "dns:localhost,ip:127.0.0.1"
+
+        if test $? -ne 0; then
+            echo "${SYSTEM} : NOT GENERATED";
+            shift
+            continue
+        fi
 
         if test $GENERATE_ALL -eq 1; then
             openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.cacert.pem" -cacerts -nokeys -password pass:"${PASSWORD}"
