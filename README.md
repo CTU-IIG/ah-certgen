@@ -37,3 +37,11 @@ Any other certificates (for your own producers and consumers) are created by:
 ```
 bash generate.sh [SERVICE NAME]
 ```
+
+### PEM certificate generation
+
+While generating certificates you can also generate `.PEM` files that are used by our Arrowhead Library ([https://github.com/CTU-IIG/ah-prem-scheduler](https://github.com/CTU-IIG/ah-prem-scheduler)).
+
+```
+bash generate.sh -a [SERVICE NAME]
+```

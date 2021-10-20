@@ -15,10 +15,18 @@ if ! test -d ${FOLDER}; then
     mkdir -p "$FOLDER"
 fi
 
+if test "$1" == "-a"; then
+    GENERATE_ALL=1
+    shift
+else
+    GENERATE_ALL=0
+fi
+
 if test $# -gt 0; then
     SYSTEM=$1;
 else
-    echo "Expected system name within the arguments." >&2
+    echo "Usage: bash generate.sh [-a] SYSTEM_NAMES" >&2
+    echo "Use '-a' to generate also 'pem' certificates required by the Arrowhead library." >&2
     exit 2;
 fi
 
@@ -79,6 +87,15 @@ while test $# -gt 0; do
             "${FOLDER}${CLOUD}.p12" "${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "${FOLDER}${SYSTEM}.p12" "${SYSTEM}.${CLOUD}.${DOMAIN}.arrowhead.eu" \
             "dns:localhost,ip:127.0.0.1"
+
+        if test $GENERATE_ALL -eq 1; then
+            openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.cacert.pem" -cacerts -nokeys -password pass:"${PASSWORD}"
+            openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.clcert.pem" -clcerts -nokeys -password pass:"${PASSWORD}"
+            openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.privkey.pem" -nocerts -password pass:"${PASSWORD}" -passout pass:"${PASSWORD}"
+            openssl rsa    -in "${FOLDER}${SYSTEM}.privkey.pem" -pubout -out "${FOLDER}${SYSTEM}.publickey.pem" -passin pass:"${PASSWORD}"
+            openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.key" -nodes -nocerts -password pass:"${PASSWORD}"
+            openssl pkcs12 -in "${FOLDER}${SYSTEM}.p12" -out "${FOLDER}${SYSTEM}.crt" -nodes -password pass:"${PASSWORD}"
+        fi
         echo "${SYSTEM} : GENERATED";
     fi
     shift
