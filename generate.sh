@@ -71,7 +71,7 @@ fi
 ## 2) Generate cloud keystore
 echo -n "Step 2: Cloud keystore "
 
-if test -f "${FOLDER}${CLOUD}.p12"; then
+if test -f "${FOLDER}${CLOUD}.p12" && test -f "${FOLDER}${CLOUD}.crt"; then
     echo "FOUND";
 else
     create_cloud_keystore \
