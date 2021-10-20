@@ -1,5 +1,7 @@
+*.ca
 *.crt
 *.p12
 *.pem
+*.pub
 *.key
 variables.sh
