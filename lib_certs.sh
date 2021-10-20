@@ -105,7 +105,7 @@ create_cloud_keystore() {
       -alias "${CLOUD_KEY_ALIAS}" \
       -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
       -dname "CN=${CLOUD_KEY_ALIAS}" \
-      -ext "BasicConstraints=ca:true,pathlen:2"
+      -ext "BasicConstraints=ca:true,pathlen:2" &&
 
     keytool -importcert -v \
       -keystore "${CLOUD_KEYSTORE}" \
@@ -113,7 +113,7 @@ create_cloud_keystore() {
       -alias "${ROOT_KEY_ALIAS}" \
       -file "${ROOT_CERT_FILE}" \
       -trustcacerts \
-      -noprompt
+      -noprompt &&
 
     keytool -certreq -v \
       -keystore "${CLOUD_KEYSTORE}" \
@@ -137,16 +137,20 @@ create_cloud_keystore() {
         -noprompt
   fi
 
-  if [ ! -f "${CLOUD_CERT_FILE}" ]; then
-    echo -e "\e[34mCreating \e[33m${CLOUD_CERT_FILE}\e[34m ...\e[0m"
+  if test $? -eq 0; then
+    if [ ! -f "${CLOUD_CERT_FILE}" ]; then
+      echo -e "\e[34mCreating \e[33m${CLOUD_CERT_FILE}\e[34m ...\e[0m"
 
-    keytool -exportcert -v \
-      -keystore "${CLOUD_KEYSTORE}" \
-      -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
-      -alias "${CLOUD_KEY_ALIAS}" \
-      -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
-      -file "${CLOUD_CERT_FILE}" \
-      -rfc
+      keytool -exportcert -v \
+        -keystore "${CLOUD_KEYSTORE}" \
+        -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
+        -alias "${CLOUD_KEY_ALIAS}" \
+        -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
+        -file "${CLOUD_CERT_FILE}" \
+        -rfc
+    fi
+  else
+    return 1;
   fi
 }
 
@@ -196,7 +200,7 @@ create_system_keystore() {
       -alias "${SYSTEM_KEY_ALIAS}" \
       -keypass:env "PASSWORD" \
       -dname "CN=${SYSTEM_KEY_CN}" \
-      -ext "SubjectAlternativeName=${SAN}"
+      -ext "SubjectAlternativeName=${SAN}" &&
 
     keytool -importcert -v \
       -keystore "${SYSTEM_KEYSTORE}" \
@@ -204,7 +208,7 @@ create_system_keystore() {
       -alias "${ROOT_KEY_ALIAS}" \
       -file "${ROOT_CERT_FILE}" \
       -trustcacerts \
-      -noprompt
+      -noprompt &&
 
     keytool -importcert -v \
       -keystore "${SYSTEM_KEYSTORE}" \
@@ -212,7 +216,7 @@ create_system_keystore() {
       -alias "${CLOUD_KEY_ALIAS}" \
       -file "${CLOUD_CERT_FILE}" \
       -trustcacerts \
-      -noprompt
+      -noprompt &&
 
     keytool -certreq -v \
       -keystore "${SYSTEM_KEYSTORE}" \
@@ -236,18 +240,22 @@ create_system_keystore() {
         -noprompt
   fi
 
-  if [ ! -f "${SYSTEM_PUB_FILE}" ]; then
-    echo -e "\e[34mCreating \e[33m${SYSTEM_PUB_FILE}\e[34m ...\e[0m"
+  if test $? -eq 0; then
+    if [ ! -f "${SYSTEM_PUB_FILE}" ]; then
+      echo -e "\e[34mCreating \e[33m${SYSTEM_PUB_FILE}\e[34m ...\e[0m"
 
-    keytool -list \
-      -keystore "${SYSTEM_KEYSTORE}" \
-      -storepass:env "PASSWORD" \
-      -alias "${SYSTEM_KEY_ALIAS}" \
-      -rfc |
-      openssl x509 \
-        -inform pem \
-        -pubkey \
-        -noout >"${SYSTEM_PUB_FILE}"
+      keytool -list \
+        -keystore "${SYSTEM_KEYSTORE}" \
+        -storepass:env "PASSWORD" \
+        -alias "${SYSTEM_KEY_ALIAS}" \
+        -rfc |
+        openssl x509 \
+          -inform pem \
+          -pubkey \
+          -noout >"${SYSTEM_PUB_FILE}"
+    fi
+  else
+    return 1;
   fi
 }
 
