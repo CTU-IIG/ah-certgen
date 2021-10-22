@@ -2,7 +2,10 @@
 
 
 cd "$(dirname "$0")" || exit
-source "variables.sh"
+if test -z "${PASSWORD}" || test -z "${DOMAIN}" || test -z "${FOLDER}" || test -z "${CLOUD}"; then
+    echo "Using 'variables.sh'"
+    source "variables.sh"
+fi
 source "lib_certs.sh"
 
 if [[ -z "${SAN}" ]]; then
