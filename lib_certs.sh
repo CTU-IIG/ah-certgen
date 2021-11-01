@@ -86,6 +86,7 @@ create_cloud_keystore() {
   local CLOUD_KEYSTORE=$3
   local CLOUD_KEY_ALIAS=$4
   local CLOUD_CERT_FILE="${CLOUD_KEYSTORE%.*}.crt"
+  local CLOUD_CA_FILE="${CLOUD_KEYSTORE%.*}.ca"
 
   if [ -f "${CLOUD_KEYSTORE}" ] && [ "${ROOT_KEYSTORE}" -nt "${CLOUD_KEYSTORE}" ]; then
     rm -f "${CLOUD_KEYSTORE}"
@@ -95,6 +96,7 @@ create_cloud_keystore() {
     echo -e "\e[34mCreating \e[33m${CLOUD_KEYSTORE}\e[34m ...\e[0m"
     mkdir -p "$(dirname "${CLOUD_KEYSTORE}")"
     rm -f "${CLOUD_CERT_FILE}"
+    rm -f "${CLOUD_CA_FILE}"
 
     keytool -genkeypair -v \
       -keystore "${CLOUD_KEYSTORE}" \
@@ -148,6 +150,13 @@ create_cloud_keystore() {
         -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
         -file "${CLOUD_CERT_FILE}" \
         -rfc
+    fi
+
+    if [ ! -f "${CLOUD_CA_FILE}" ]; then
+        echo -e "\e[34mCreating \e[33m${CLOUD_CA_FILE}\e[34m ...\e[0m"
+
+        cat "${ROOT_CERT_FILE}" >"${CLOUD_CA_FILE}"
+        cat "${CLOUD_CERT_FILE}" >>"${CLOUD_CA_FILE}"
     fi
   else
     return 1;
