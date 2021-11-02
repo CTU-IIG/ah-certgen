@@ -313,7 +313,71 @@ create_sysop_keystore() {
   fi
 
   if [[ "${CREATE_KEYSTORE_OR_PUB_FILE}" == "1" ]]; then
-    create_system_keystore "$1" "$2" "$3" "$4" "$5" "$6" "dns:localost,ip:127.0.0.1"
+    local ROOT_KEYSTORE=$1
+    local ROOT_KEY_ALIAS=$2
+    local ROOT_CERT_FILE="${ROOT_KEYSTORE%.*}.crt"
+    local CLOUD_KEYSTORE=$3
+    local CLOUD_KEY_ALIAS=$4
+    local CLOUD_CERT_FILE="${CLOUD_KEYSTORE%.*}.crt"
+    local SYSTEM_KEYSTORE=$5
+    local SYSTEM_KEY_CN=$6
+    local SYSTEM_KEY_ALIAS=$(echo "$6" | cut -f1 -d.)
+    local SYSTEM_PUB_FILE="${SYSTEM_KEYSTORE%.*}.pub"
+    local SAN="dns:localost,ip:127.0.0.1"
+
+    if [ ! -f "${SYSTEM_KEYSTORE}" ]; then
+      echo -e "\e[34mCreating \e[33m${SYSTEM_KEYSTORE}\e[34m ...\e[0m"
+      mkdir -p "$(dirname "${SYSTEM_KEYSTORE}")"
+      rm -f "${SYSTEM_PUB_FILE}"
+
+      keytool -genkeypair -v \
+        -keystore "${SYSTEM_KEYSTORE}" \
+        -storepass:env "PASSWORD" \
+        -keyalg "RSA" \
+        -keysize "2048" \
+        -validity "3650" \
+        -alias "${SYSTEM_KEY_ALIAS}" \
+        -keypass:env "PASSWORD" \
+        -dname "CN=${SYSTEM_KEY_CN}" \
+        -ext "SubjectAlternativeName=${SAN}"
+
+      keytool -certreq -v \
+        -keystore "${SYSTEM_KEYSTORE}" \
+        -storepass:env "PASSWORD" \
+        -alias "${SYSTEM_KEY_ALIAS}" \
+        -keypass:env "PASSWORD" |
+        keytool -gencert -v \
+          -keystore "${CLOUD_KEYSTORE}" \
+          -storepass:env "CLOUD_KEYSTORE_PASSWORD" \
+          -validity "3650" \
+          -alias "${CLOUD_KEY_ALIAS}" \
+          -keypass:env "CLOUD_KEYSTORE_PASSWORD" \
+          -ext "SubjectAlternativeName=${SAN}" \
+          -rfc |
+        keytool -importcert \
+          -keystore "${SYSTEM_KEYSTORE}" \
+          -storepass:env "PASSWORD" \
+          -alias "${SYSTEM_KEY_ALIAS}" \
+          -keypass:env "PASSWORD" \
+          -trustcacerts \
+          -noprompt
+    fi
+
+    if test $? -eq 0; then
+      if [ ! -f "${SYSTEM_PUB_FILE}" ]; then
+        echo -e "\e[34mCreating \e[33m${SYSTEM_PUB_FILE}\e[34m ...\e[0m"
+
+        keytool -list \
+          -keystore "${SYSTEM_KEYSTORE}" \
+          -storepass:env "PASSWORD" \
+          -alias "${SYSTEM_KEY_ALIAS}" \
+          -rfc |
+          openssl x509 \
+            -inform pem \
+            -pubkey \
+            -noout >"${SYSTEM_PUB_FILE}"
+      fi
+    fi
   fi
 
   if [ ! -f "${SYSOP_CA_FILE}" ]; then
